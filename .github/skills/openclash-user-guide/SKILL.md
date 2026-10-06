@@ -1,6 +1,6 @@
 ---
 name: openclash-user-guide
-description: 'OpenClash 用户功能指南。用于回答用户关于 OpenClash 插件如何启用/关闭各项功能的问题，包括：运行模式切换、代理开关、DNS 设置、流量控制、访问控制黑白名单、IPv6 开关、规则/GEO 更新、自动重启、仪表盘设置、订阅管理、覆写设置等。每个选项均标注了对应的 UCI 配置项、修改的 Mihomo YAML 配置段、以及触发的脚本。Use when user asks how to enable, disable, configure, or troubleshoot any OpenClash feature on OpenWrt.'
+description: 'OpenClash 用户功能指南。用于回答用户关于 OpenClash 插件如何启用/关闭各项功能的问题，包括：运行模式切换、代理开关、DNS 设置、流量控制、访问控制黑白名单、IPv6 开关、规则/GEO 更新、自动重启、仪表盘设置、订阅管理、覆写设置、连接异常排查等。每个选项均标注了对应的 UCI 配置项、修改的 Mihomo YAML 配置段、以及触发的脚本。Use when user asks how to enable, disable, configure, or troubleshoot any OpenClash feature on OpenWrt.'
 license: MIT
 compatibility: Designed for Claude Code / Copilot CLI / Codex / OpenCode / Gemini CLI / Cursor / Windsurf / Roo Code / Continue / Kiro / Trae / OpenHands 等 agent；需 SSH 访问运行 OpenClash 的 OpenWrt 路由器；路由器端需 uci、nft、curl、opkg、dnsmasq-full、ruby
 metadata:
@@ -85,13 +85,13 @@ disable-model-invocation: false
 | ping / ICMP / 高级流量控制 | `05-firewall-special.md` | §5.1 ICMP/Ping 转发处理规则、§5.2 高级流量控制（iptables）实现 |
 | 选项→规则映射 / fw3 / DNS 劫持实现 | `06-firewall-options-dnsmasq.md` | §6.1 fw3 等效链、§6.2 插件选项对防火墙规则的影响、§6.3 插件选项改写 dnsmasq 配置的实现 |
 | 运行状态页功能开关 | `07-page-overview.md` | §7.1–7.12 运行状态页核心控制、运行模式切换、仪表盘设置、IP 检测、oixCloud 服务开关 |
-| 插件设置·模式 / 流量 | `08-settings-mode-traffic.md` | §8.1 插件设置页总览、§8.2 运行模式（§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 数据面参数结论与选型）、§8.3 流量控制、§8.4 性能实测数据（四栈 × gso 主表、转发路径、TUN 参数、持续/并发/延迟、sysctl） |
+| 插件设置·模式 / 流量 | `08-settings-mode-traffic.md` | §8.1 插件设置页总览（§8.1.1 强制写入项）、§8.2 运行模式（§8.2.12 四栈选型、§8.2.13 转发模式、§8.2.14 默认值与 MIPS 来源、§8.2.15 TUN 数据面参数结论与选型）、§8.3 流量控制、§8.4 性能实测数据（四栈 × gso 主表、转发路径、TUN 参数、持续/并发/延迟、sysctl） |
 | 插件设置页·DNS / 黑白名单 / 流媒体 / IPv6（菜单「插件设置」内的 DNS 选项→§9.1；用户问「插件设置→DNS」时读本文件） | `09-settings-dns-ac-ipv6.md` | §9.1 DNS 设置、§9.2 黑白名单、§9.3 流媒体、§9.4 外部控制、§9.5 IPv6 开关 |
 | 插件设置页·GEO / 其他 / 来源流量 | `10-settings-geo-misc-src.md` | §10.1 GEO 规则更新与维护、§10.2 其他杂项选项、§10.3 来源流量控制 |
 | 覆写设置页(CBI)·常规 / DNS / Meta / Smart / 规则 / 认证（菜单「覆写设置」页内的 DNS 选项→§11.3；用户问「覆写设置→DNS」时读本文件） | `11-overwrite-settings.md` | §11.2 常规设置、§11.3 DNS 覆写、§11.4 Meta 覆写、§11.5 Smart 覆写、§11.6 规则覆写、§11.7 认证 |
 | 订阅 / 配置管理 | `12-subscribe-config.md` | §12.1–12.3 订阅管理与更新、§12.4–12.8 配置管理与切换 |
 | 运行日志 / 调试日志 / 生成日志 | `13-logs.md` | §13.1 页面总览、§13.2 三个标签页（Plugin/Core/Debug Logs）、§13.5 调试日志包含的 30 个章节 |
-| 需要 CLI 诊断 / AI 自助修复 | `14-diagnostics.md` | §14.2 诊断决策树、§14.3 CLI 诊断命令、§14.4 诊断脚本、§14.5 认证前置、§14.6–14.7 AI 自助诊断与修复流程 |
+| 需要 CLI 诊断 / AI 自助修复 | `14-diagnostics.md` | §14.2 诊断决策树（§14.2.7 TFO 未生效/异常）、§14.3 CLI 诊断命令、§14.4 诊断脚本、§14.5 认证前置、§14.6–14.7 AI 自助诊断与修复流程 |
 | LuCI / Mihomo HTTP API | `15-api.md` | §15.1 LuCI API、§15.2 Mihomo 内核 HTTP API |
 | 覆写模块格式 / 操作符 | `16-overwrite-module-format.md` | §16.1 覆写模块是什么、§16.2 覆写模块格式与操作符 |
 | 覆写模块示例 / UCI 结构 | `17-overwrite-module-examples.md` | §17.3 覆写模块示例、§17.5 覆写模块的 UCI 结构 |

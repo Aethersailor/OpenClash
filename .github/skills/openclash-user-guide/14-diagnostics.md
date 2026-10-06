@@ -93,6 +93,17 @@ AI 会将以下格式的命令发给用户：
 | 5. 依赖检查 | `opkg list-installed \| grep -E 'ruby\|dnsmasq-full\|kmod-tun\|kmod-nft-tproxy\|curl\|ca-bundle\|ip-full\|unzip'` | 🟢 | 8 个包均已安装 | 缺失→安装对应包 |
 | 6. 调试日志 | `/usr/share/openclash/openclash_debug.sh` | 🟡 | 生成 `/tmp/openclash_debug.log` | 日志含 `## 依赖检查` 章节 |
 
+#### 14.2.7 TFO（TCP Fast Open）未生效 / TFO 连接异常
+
+> **机理**：Linux 内核判定 TFO 异常后（TFO 连接连续 3 次超时、或收到异常的乱序 FIN/RST，多由中间盒错误处理 TFO 引起），会**全局暂停主动发起的 TFO**：停用时长 = `tcp_fastopen_blackhole_timeout_sec` × 2^min(触发次数-1, 6)（最大 64 倍），期间新连接照常建立、只是不使用 TFO（SYN 不带数据、不请求 cookie）。内核默认值随版本不同：≤5.13 为 `3600`（一次触发可停用数十小时，`tfo: true` 的节点长期用不到 TFO）；≥5.14 起上游默认 `0`（禁用——该机制误触发频繁）。
+
+| 步骤 | 命令 | 安全 | 期望输出 | 异常处理 |
+|------|------|------|----------|----------|
+| 1. 基础开关 | `cat /proc/sys/net/ipv4/tcp_fastopen` | 🟢 | 带客户端位（`1`/`3` 等奇数） | `0`/`2`（无 `0x1`）→ 客户端 TFO 未启用 |
+| 2. 黑洞超时 | `cat /proc/sys/net/ipv4/tcp_fastopen_blackhole_timeout_sec` | 🟢 | `0`（插件写入，检测已禁用） | 非 `0`：如旧内核默认 `3600` 会让 TFO 被全局停用数十小时；插件下次核心启动会自动写回 `0` |
+| 3. 触发计数 | `awk 'NR%2==1{for(i=1;i<=NF;i++)h[i]=$i} NR%2==0{for(i=1;i<=NF;i++) if(h[i]~/FastOpen/) printf "%s=%s ",h[i],$i; print ""}' /proc/net/netstat` | 🟢 | 关注 `TCPFastOpenBlackhole`（触发次数）与 `TCPFastOpenActive`（数据入 SYN 的连接数） | `Active` 不增长而 `Blackhole` 持续增长→TFO 被停用或线路不友好（值为 `0` 时检测禁用、`Blackhole` 不再增长，只关注 `Active`） |
+| 4. 关闭 `tfo` 观察 | 对该节点临时去掉 `tfo: true` | 🟢 | 连接表现一致或更稳 | 关闭后明显变稳→该线路对 TFO 不友好，保持关闭 |
+
 ### 14.3 通用诊断命令
 
 > 不限于特定症状的快速检查命令。
