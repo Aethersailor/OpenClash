@@ -1897,7 +1897,7 @@ var ocLang = window.ocLang || '';
             if (allLines.length === 0) return;
             this.logLines = this.logLines.concat(allLines);
 
-            var maxLines = 3;
+            var maxLines = 10;
             var el = DOMCache.oclog;
 
             if (!el.wheelBlocked) {
@@ -3977,7 +3977,7 @@ var ocLang = window.ocLang || '';
     function clashversion_check() {
         if (document.visibilityState === 'hidden') return;
         var now = Date.now();
-        if (now - lastVersionCheck < 60000) return;
+        if (now - lastVersionCheck < 30000) return;
         lastVersionCheck = now;
 
         function compareVersions(v1, v2) {
