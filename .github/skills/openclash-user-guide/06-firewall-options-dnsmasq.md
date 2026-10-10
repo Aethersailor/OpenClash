@@ -155,3 +155,54 @@ fi
 - 效果: DNS 解析这些域名时加入 set 便于在匹配时绕过（而非被 chnroute 影响）
 
 ---
+
+### 6.4 Dnsmasq 重绑定保护（`rebind_protection`）的影响
+
+`rebind_protection` 是**系统 dnsmasq** 的开关（`dhcp.@dnsmasq[0]`，作用是阻断 DNS 重绑定攻击），插件不读写它。开启时 dnsmasq 丢弃上游应答里指向保留地址的记录；而 Mihomo 的 `hosts`（「覆写设置 → DNS → Hosts」）与 Fake-IP 的 IPv6 池返回的正是这类地址 ⇒ 相关域名在客户端侧解析不到地址。
+
+**选项 → dnsmasq 参数**（`/etc/init.d/dnsmasq`）
+
+| UCI 选项 | 默认 | dnsmasq 参数 | 作用 |
+|---|---|---|---|
+| `rebind_protection` | `1` | `--stop-dns-rebind` | 丢弃上游应答中的保留地址 |
+| `rebind_localhost` | 视固件为 `1` 或未设置（未设置等于 `0`） | `--rebind-localhost-ok` | 额外放行 `127.0.0.1` / `::1` 应答 |
+| `rebind_domain`（列表） | 空 | `--rebind-domain-ok=<域名>` | 白名单，整个域名放行 |
+
+**被丢弃的地址范围**（dnsmasq 2.93）
+
+| 类别 | 地址 | 处理 |
+|---|---|---|
+| IPv4 私网、链路本地 | `10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16`、`169.254.0.0/16` | 丢弃 |
+| IPv4 文档 / 测试网段 | `192.0.2.0/24`、`198.51.100.0/24`、`203.0.113.0/24`、`255.255.255.255` | 丢弃 |
+| IPv6 ULA / 链路本地 / 站点本地 | `fc00::/7`、`fe80::/10`、`fec0::/10` | 丢弃 |
+| IPv4-mapped IPv6（内嵌私网 IPv4） | `::ffff:192.168.1.1` | 丢弃 |
+| 本机地址 | `127.0.0.1`、`::1` | `rebind_localhost=1` 放行，`0` 丢弃 |
+| 其它 | `198.18.0.0/16`（Fake-IP 的 IPv4 池）、`0.0.0.0`、`192.0.0.1`、公网地址 | 放行 |
+
+> **三个判定要点**
+> - **整条应答一起丢弃**：应答里只要有一条地址落入上表（例如一条 A 应答同时含 `8.8.8.8` 与 `192.168.3.99`），整条应答都不返回，客户端得到「无记录」而不是 NXDOMAIN。
+> - **对任意上游生效**：包括 `127.0.0.1#7874`（Mihomo）⇒ 只要 dnsmasq 处在客户端与内核之间就会触发。`enable_redirect_dns=2`（nft 把 53 端口直接重定向到 `dns_port`）时客户端 DNS 不经过 dnsmasq，不受影响（见 §6.2 该选项行）。
+> - **日志可查**：触发时系统日志记录 `possible DNS-rebind attack detected: <域名>`（`logread | grep DNS-rebind`）。
+
+**受影响场景**
+
+| 场景 | 现象 | 做法 |
+|---|---|---|
+| 「覆写设置 → DNS → Hosts」把域名指向内网（保留）地址 | 该域名解析不到地址，其余域名正常 | 把域名加入「域名白名单」，或关闭「重绑定保护」 |
+| Fake-IP 模式 + IPv6（`ipv6_dns=1`） | 域名只有 IPv4 地址、IPv6 访问失败 | Fake-IP 的 IPv6 池是 ULA（`fdfe:dcba:9876::/64` 一类）⇒ 同上一行处理，或按 `09-settings-dns-ac-ipv6.md` §9.5.1 关闭 IPv6 DNS |
+| 内网自建 DNS、NAS、`.lan` 域名由上游返回私网地址 | 仅这些域名解析失败 | 把对应域名加入「域名白名单」 |
+| 启动日志出现 `You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address...` | Hosts 含保留地址 | 本节问题 |
+
+**做法** — LuCI 路径：网络 → DHCP/DNS → 常规设置 → 「重绑定保护」开关、「域名白名单」字段。
+
+```bash
+# 域名白名单（保留防护）
+uci add_list dhcp.@dnsmasq[0].rebind_domain='example.com'
+uci commit dhcp && /etc/init.d/dnsmasq restart
+
+# 关闭重绑定保护（Hosts 需要解析内网地址时最省事，代价是失去该防护）
+uci set dhcp.@dnsmasq[0].rebind_protection='0'
+uci commit dhcp && /etc/init.d/dnsmasq restart
+```
+
+**自查**：客户端 `nslookup <域名>` 无地址返回，且设备 `logread` 命中该域名。

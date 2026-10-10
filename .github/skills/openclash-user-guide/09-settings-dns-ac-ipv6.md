@@ -216,7 +216,7 @@
   - OpenWrt / Linux：`ip -6 route replace default via <旁路由 IPv6 地址> dev <iface>`
   - Windows（管理员）：`New-NetRoute -DestinationPrefix "::/0" -InterfaceAlias "<网卡名>" -NextHop "<旁路由 IPv6 地址>" -RouteMetric 1`；撤销用同参数 `Remove-NetRoute`
   - Windows 启用/禁用网卡 IPv6（管理员）：`Enable-NetAdapterBinding -Name "<网卡名>" -ComponentID ms_tcpip6` / `Disable-NetAdapterBinding …`
-- 旁路由侧要求（`ipv6_enable=1`）：① **关闭自身 RA/DHCPv6**（`dhcp.lan.ra='disabled'`、`dhcp.lan.dhcpv6='disabled'`，或改用 relay），避免与主路由争夺客户端配置（同网段多 RA 源 = IPv6 时通时断）；② 直连回程不可靠时开 NAT66（客户端只有 ULA，或持有 GUA 但国内 v6 不通）：`masq6` 只覆盖 IPv6，插件 `bypass_gateway_compatible` 是双栈开关、只 SNAT 被绕过的转发流量（代理/内网/路由器自身不受影响）；③ 国内 IPv6 列表要用 `chnr6_custom_url` 保持更新，否则国内 v6 也会被代理；④ 要让**外网域名**走 IPv6，启用 `fakeip_range6`（如 `fdfe:dcba:9876::1/64`）——禁用（默认）时外网域名无 AAAA、只能走 IPv4（内核 `github.com/metacubex/mihomo/dns/middleware.go` `withFakeIP()`）；国内域名在 `fake-ip-filter` 内始终解析真实地址。
+- 旁路由侧要求（`ipv6_enable=1`）：① **关闭自身 RA/DHCPv6**（`dhcp.lan.ra='disabled'`、`dhcp.lan.dhcpv6='disabled'`，或改用 relay），避免与主路由争夺客户端配置（同网段多 RA 源 = IPv6 时通时断）；② 直连回程不可靠时开 NAT66（客户端只有 ULA，或持有 GUA 但国内 v6 不通）：`masq6` 只覆盖 IPv6，插件 `bypass_gateway_compatible` 是双栈开关、只 SNAT 被绕过的转发流量（代理/内网/路由器自身不受影响）；③ 国内 IPv6 列表要用 `chnr6_custom_url` 保持更新，否则国内 v6 也会被代理；④ 要让**外网域名**走 IPv6，启用 `fakeip_range6`（如 `fdfe:dcba:9876::1/64`）——禁用（默认）时外网域名无 AAAA、只能走 IPv4（内核 `github.com/metacubex/mihomo/dns/middleware.go` `withFakeIP()`）；国内域名在 `fake-ip-filter` 内始终解析真实地址。该池属 ULA：若 dnsmasq 处在客户端与内核之间且开启重绑定保护，这些 AAAA 应答会被丢弃（见 `06-firewall-options-dnsmasq.md` §6.4）。
 - 判定与排错：客户端 `ip -6 route get <国内 IPv6 目标>` 看 `src`（ULA/私有前缀 ⇒ 回程不保）；「国内 v6 不通、国外正常」⇒ 依次查 地址来源 → RA 多源 → 上游回程（不可靠时按 ② 开 NAT66）；「v6 全通但不走代理」⇒ 客户端网关指向了主路由（做法 ②）。
 
 ---

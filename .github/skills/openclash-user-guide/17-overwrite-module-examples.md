@@ -15,7 +15,7 @@
 
 远程模块可设置 `update_days` 和 `update_hour` 实现定时自动拉取。
 
-> 插件内置两个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）与 `Google_Play`（`order=2`，用于解决 Google 商店下载/更新失败），都可在「覆写模块」窗口启用。
+> 插件内置四个订阅型模块（`type=http`、`update_days=off`、`config=all`、`enable=0`）：`default`（`order=1`）、`Google_Play`（`order=2`，用于解决 Google 商店下载/更新失败）、`Tailscale`（`order=3`）与 `WiFi_Calling`（`order=4`，让运营商 ePDG 的 IKE/NAT-T 流量走代理，需在模块参数中指定 UDP 代理组），都可在「覆写模块」窗口启用。
 
 ### 17.2 覆写与配置文件的匹配
 
