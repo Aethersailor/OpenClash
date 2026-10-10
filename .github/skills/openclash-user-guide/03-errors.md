@@ -102,7 +102,7 @@
 |----------|---------|------|----------|
 | `Switch Failed` (页面提示，非日志) | 「运行状态」快捷设置 | 切换配置接口失败（API 不可达或内核未运行） | 「运行状态」确认核心状态；刷新页面后重试 |
 | `Config file does not exist` (配置文件不存在) | 「配置管理」 | 配置文件路径无效 | 「配置管理」检查文件名；确认文件存在于配置列表中 |
-| `File size exceeds 10MB limit` (文件超过 10MB 限制) | 「配置管理」上传 | 上传文件超过 10MB | 减小文件或拆分上传 |
+| `File size exceeds 20MB limit` (文件超过 20MB 限制) | 「配置管理」上传 | 上传文件超过 20MB | 减小文件或拆分上传 |
 | `Cannot delete the last remaining dashboard` (无法删除最后一个仪表盘) | 「运行状态」仪表盘切换 | 只剩一个仪表盘时不允许删除 | 「运行状态」先下载新的仪表盘再删除旧的 |
 | `Failed to generate age key` (生成 Age 密钥失败) | 「配置订阅」Age 密钥 | 核心不支持 age keygen | 「版本更新」检查核心版本；手动生成 age 密钥 |
 | `Failed to calculate public key` (计算公钥失败) | 「配置订阅」Age 密钥 | 密钥格式无效 | 验证 age 密钥格式（应以 `AGE-SECRET-KEY-` 开头） |
