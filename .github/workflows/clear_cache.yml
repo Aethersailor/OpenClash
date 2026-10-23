@@ -1,7 +1,6 @@
 name: Clean jsDelivr Cache
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - master
